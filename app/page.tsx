@@ -15,25 +15,19 @@ import {
 } from 'lucide-react';
 
 export default function HomePage() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   return (
     <main className={theme === 'dark' ? 'dark' : ''}>
-      <div className="min-h-screen bg-neutral-50 text-neutral-900 transition-colors dark:bg-[#09090b] dark:text-neutral-100">
-        <header className="flex items-center justify-between border-b border-neutral-200 px-5 py-4 dark:border-white/10 sm:px-8">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-600 text-white">
-              <Code2 size={20} />
-            </div>
-            <div>
-              <h1 className="text-sm font-semibold tracking-tight">
-                Alphex Preview Studio
-              </h1>
-              <p className="text-xs text-neutral-500">
-                Web project workspace
-              </p>
-            </div>
-          </div>
+      <div className="min-h-screen bg-[#f7f7f5] text-[#171717] transition-colors dark:bg-[#101010] dark:text-[#f5f5f5]">
+        <header className="flex items-center justify-between border-b border-black/10 px-5 py-5 dark:border-white/10 sm:px-10">
+          <a
+            href="/"
+            aria-label="Alphex Preview Studio home"
+            className="text-xl font-light tracking-[-0.055em] sm:text-2xl"
+          >
+            alphex preview studio
+          </a>
 
           <button
             type="button"
@@ -42,98 +36,123 @@ export default function HomePage() {
                 current === 'dark' ? 'light' : 'dark'
               )
             }
-            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-200 transition hover:bg-neutral-100 dark:border-white/10 dark:hover:bg-white/5"
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 transition hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
           >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
           </button>
         </header>
 
-        <section className="mx-auto flex min-h-[calc(100vh-74px)] max-w-5xl flex-col items-center justify-center px-5 py-16 text-center">
-          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-violet-500/20 bg-violet-500/10 text-violet-600 dark:text-violet-300">
-            <FolderOpen size={30} />
+        <section className="mx-auto flex max-w-6xl flex-col px-5 pb-20 pt-20 sm:px-10 sm:pt-28 lg:pt-32">
+          <div className="mb-8 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.16em] text-neutral-500 dark:text-neutral-400">
+            <span className="h-2 w-2 rounded-full bg-[#facc15]" />
+            Web project workspace
           </div>
 
-          <p className="mb-4 rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-500 dark:border-white/10">
-            Your web project workspace
-          </p>
-
-          <h2 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-6xl">
-            Build. Preview.
-            <span className="block text-violet-600 dark:text-violet-400">
-              Refine.
+          <h1 className="max-w-4xl text-5xl font-light leading-[1.08] tracking-[-0.065em] sm:text-7xl lg:text-8xl">
+            Your code.
+            <br />
+            Your preview.
+            <br />
+            <span className="font-normal">
+              <span className="decoration-[#facc15] decoration-[8px] underline underline-offset-4">
+                Your workspace.
+              </span>
             </span>
-          </h2>
+          </h1>
 
-          <p className="mt-6 max-w-xl text-sm leading-7 text-neutral-600 dark:text-neutral-400 sm:text-base">
-            Bring your website files into one workspace. Inspect your project,
-            edit code, and preview responsive layouts in one place.
-          </p>
+          <div className="mt-8 flex max-w-2xl flex-col gap-7 sm:flex-row sm:items-end sm:justify-between">
+            <p className="max-w-md text-sm leading-7 text-neutral-600 dark:text-neutral-400 sm:text-base">
+              A focused workspace to import website projects, inspect files,
+              edit code, and preview responsive layouts without the clutter.
+            </p>
 
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
             <button
               type="button"
               onClick={() =>
                 document.getElementById('project-import')?.click()
               }
-              className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-violet-500"
+              className="inline-flex w-fit shrink-0 items-center gap-3 rounded-full bg-[#facc15] px-6 py-3.5 text-sm font-medium text-[#171717] transition hover:bg-[#eab308]"
             >
-              <Upload size={17} />
-              Get started
+              <Upload size={16} />
+              Import a project
               <ArrowUpRight size={16} />
             </button>
           </div>
 
-          <div className="mt-16 grid w-full max-w-3xl gap-4 sm:grid-cols-3">
+          <div className="mt-20 grid border-y border-black/10 dark:border-white/10 sm:grid-cols-3">
             {[
               {
+                number: '01',
                 icon: FolderOpen,
-                title: 'Project files',
-                description: 'Bring your website files together.',
+                title: 'Bring your files',
+                description:
+                  'Start with a project folder or ZIP archive.',
               },
               {
+                number: '02',
                 icon: Code2,
-                title: 'Code workspace',
-                description: 'Inspect and edit project code.',
+                title: 'Work with your code',
+                description:
+                  'Browse your project and edit supported text files.',
               },
               {
+                number: '03',
                 icon: Monitor,
-                title: 'Responsive preview',
-                description: 'Prepare desktop, tablet, and mobile views.',
+                title: 'Preview every screen',
+                description:
+                  'Inspect desktop, tablet, and mobile layouts.',
               },
-            ].map((feature) => {
+            ].map((feature, index) => {
               const Icon = feature.icon;
 
               return (
-                <div
-                  key={feature.title}
-                  className="rounded-2xl border border-neutral-200 bg-white p-5 text-left dark:border-white/10 dark:bg-white/[0.02]"
+                <article
+                  key={feature.number}
+                  className={`py-7 sm:px-6 sm:py-8 ${
+                    index > 0
+                      ? 'border-t border-black/10 dark:border-white/10 sm:border-l sm:border-t-0'
+                      : ''
+                  }`}
                 >
-                  <Icon
-                    size={20}
-                    className="mb-4 text-violet-600 dark:text-violet-400"
-                  />
-                  <h3 className="text-sm font-semibold">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-neutral-500">
+                      {feature.number}
+                    </span>
+                    <Icon
+                      size={19}
+                      strokeWidth={1.5}
+                      className="text-neutral-700 dark:text-neutral-300"
+                    />
+                  </div>
+
+                  <h2 className="mt-7 text-base font-medium tracking-tight">
                     {feature.title}
-                  </h3>
-                  <p className="mt-2 text-xs leading-6 text-neutral-500">
+                  </h2>
+
+                  <p className="mt-2 max-w-xs text-sm leading-6 text-neutral-500 dark:text-neutral-400">
                     {feature.description}
                   </p>
-                </div>
+                </article>
               );
             })}
           </div>
 
-          <div className="mt-10 flex items-center gap-5 text-xs text-neutral-500">
-            <span className="flex items-center gap-1.5">
-              <Monitor size={14} /> Desktop
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Tablet size={14} /> Tablet
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Smartphone size={14} /> Mobile
-            </span>
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-4 text-xs text-neutral-500 dark:text-neutral-400">
+            <span>Designed for a focused workflow.</span>
+
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1.5">
+                <Monitor size={14} /> Desktop
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Tablet size={14} /> Tablet
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Smartphone size={14} /> Mobile
+              </span>
+            </div>
           </div>
 
           <input
@@ -146,7 +165,7 @@ export default function HomePage() {
 
               if (file) {
                 window.alert(
-                  `Selected ${file.name}. Project importing will be enabled in the next development step.`
+                  `Selected ${file.name}. Full project importing will be connected in a later step.`
                 );
               }
 
@@ -155,8 +174,11 @@ export default function HomePage() {
           />
         </section>
 
-        <footer className="border-t border-neutral-200 px-5 py-4 text-center text-xs text-neutral-500 dark:border-white/10">
-          Alphex Preview Studio · Your workspace for web projects
+        <footer className="flex flex-col gap-2 border-t border-black/10 px-5 py-6 text-xs text-neutral-500 dark:border-white/10 dark:text-neutral-400 sm:flex-row sm:items-center sm:justify-between sm:px-10">
+          <span className="text-sm font-light tracking-[-0.04em] text-neutral-800 dark:text-neutral-200">
+            alphex preview studio
+          </span>
+          <span>A clearer way to work with web projects.</span>
         </footer>
       </div>
     </main>
