@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   ArrowUpRight,
   Code2,
@@ -21,13 +22,13 @@ export default function HomePage() {
     <main className={theme === 'dark' ? 'dark' : ''}>
       <div className="min-h-screen bg-[#f7f7f5] text-[#171717] transition-colors dark:bg-[#101010] dark:text-[#f5f5f5]">
         <header className="flex items-center justify-between border-b border-black/10 px-5 py-5 dark:border-white/10 sm:px-10">
-          <a
+          <Link
             href="/"
             aria-label="Alphex Preview Studio home"
             className="text-xl font-light tracking-[-0.055em] sm:text-2xl"
           >
             alphex preview studio
-          </a>
+          </Link>
 
           <button
             type="button"
