@@ -7,7 +7,7 @@ import {
   ArrowRight,
   Check,
   Code2,
-  FileArchive,
+  FileCode2,
   FolderOpen,
   Monitor,
   Smartphone,
@@ -28,7 +28,7 @@ export default function HomePage() {
     }
 
     window.alert(
-      'ZIP selected successfully. The import workflow will be connected to the workspace in the next step.',
+      'ZIP selected successfully. Open the workspace to import your project.',
     );
 
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -37,19 +37,17 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#faf9f6] text-[#171a1a]">
       <header className="border-b border-[#e8e6df] bg-[#faf9f6]">
-        <div className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-12">
+        <div className="mx-auto flex min-h-[76px] max-w-[1440px] items-center justify-between gap-4 px-5 sm:px-8 lg:px-12">
           <Link
             href="/"
             aria-label="Alphex Preview Studio home"
-            className="block w-[210px] overflow-hidden sm:w-[255px]"
+            className="block w-[200px] shrink-0 sm:w-[250px]"
           >
-            <div className="relative aspect-[3.6/1] w-full overflow-hidden">
-              <img
-                src="/alphex-preview-studio-logo.png"
-                alt="Alphex Preview Studio"
-                className="absolute left-0 top-[-54%] block h-auto w-full max-w-none"
-              />
-            </div>
+            <img
+              src="/alphex-preview-studio-logo.png"
+              alt="Alphex Preview Studio"
+              className="block h-auto max-h-[64px] w-full object-contain object-left"
+            />
           </Link>
 
           <div className="hidden items-center gap-2 text-sm text-[#73746f] sm:flex">
@@ -97,12 +95,12 @@ export default function HomePage() {
               onChange={(event) => handleImport(event.target.files?.[0])}
             />
 
-            <a
-              href="#workflow"
+            <Link
+              href="/workspace"
               className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[#e1dfd8] bg-white px-6 text-sm font-medium text-[#30312d] transition-colors hover:bg-[#f3f2ee]"
             >
-              Explore the workspace
-            </a>
+              Open workspace
+            </Link>
           </div>
 
           <div className="mt-8 flex flex-wrap gap-x-5 gap-y-3 text-xs text-[#73746f]">
@@ -132,7 +130,7 @@ export default function HomePage() {
                 <span className="h-2.5 w-2.5 rounded-full bg-[#e7e5df]" />
               </div>
               <span className="text-[11px] text-[#8b8b83]">
-                preview.alphex.studio
+                Alphex Preview Studio
               </span>
               <Code2 size={16} className="text-[#73746f]" />
             </div>
@@ -146,6 +144,7 @@ export default function HomePage() {
 
                 <div className="space-y-1 text-xs">
                   <div className="rounded-md bg-[#ffb900]/20 px-2 py-2 font-medium text-[#5d4500]">
+                    <FileCode2 size={13} className="mr-2 inline" />
                     index.html
                   </div>
                   <div className="rounded-md px-2 py-2 text-[#686961]">
@@ -197,7 +196,7 @@ export default function HomePage() {
             <div className="flex items-center justify-between border-t border-[#e8e6df] px-4 py-3 text-[11px] text-[#73746f]">
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#7baf79]" />
-                Workspace concept
+                Workspace preview concept
               </span>
               <span>Desktop · 1440 px</span>
             </div>
@@ -205,10 +204,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section
-        id="workflow"
-        className="border-t border-[#e8e6df] bg-white"
-      >
+      <section id="workflow" className="border-t border-[#e8e6df] bg-white">
         <div className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 lg:px-12 lg:py-20">
           <div className="max-w-xl">
             <p className="text-xs font-semibold tracking-[0.16em] text-[#a47700]">
