@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import { Outfit } from 'next/font/google';
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -15,8 +16,15 @@ import {
   Upload,
 } from 'lucide-react';
 
+const outfit = Outfit({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-outfit',
+});
+
 export default function HomePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [logoFailed, setLogoFailed] = useState(false);
 
   function handleImport(file?: File) {
     if (!file) return;
@@ -27,27 +35,33 @@ export default function HomePage() {
       return;
     }
 
-    window.alert(
-      'ZIP selected successfully. Open the workspace to import your project.',
-    );
+    window.alert('Open the workspace to import your project.');
 
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
   return (
-    <main className="min-h-screen bg-[#faf9f6] text-[#171a1a]">
+    <main className={`${outfit.className} min-h-screen bg-[#faf9f6] text-[#171a1a]`}>
       <header className="border-b border-[#e8e6df] bg-[#faf9f6]">
-        <div className="mx-auto flex min-h-[76px] max-w-[1440px] items-center justify-between gap-4 px-5 sm:px-8 lg:px-12">
-          <Link
-            href="/"
-            aria-label="Alphex Preview Studio home"
-            className="block w-[200px] shrink-0 sm:w-[250px]"
-          >
-            <img
-              src="/alphex-preview-studio-logo.png"
-              alt="Alphex Preview Studio"
-              className="block h-auto max-h-[64px] w-full object-contain object-left"
-            />
+        <div className="mx-auto flex min-h-[88px] max-w-[1440px] items-center justify-between gap-4 px-5 sm:px-8 lg:px-12">
+          <Link href="/" aria-label="Alphex Preview Studio home" className="block shrink-0">
+            {!logoFailed ? (
+              <img
+                src="/alphex-preview-studio-logo.png"
+                alt="Alphex Preview Studio"
+                onError={() => setLogoFailed(true)}
+                className="block h-auto w-[220px] object-contain sm:w-[280px]"
+              />
+            ) : (
+              <span className="block">
+                <span className="block text-[32px] font-bold leading-none tracking-[-0.065em]">
+                  alphex
+                </span>
+                <span className="mt-1 block pl-1 text-[9px] font-medium tracking-[0.38em] text-[#55564f]">
+                  PREVIEW STUDIO
+                </span>
+              </span>
+            )}
           </Link>
 
           <div className="hidden items-center gap-2 text-sm text-[#73746f] sm:flex">
@@ -57,7 +71,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <section className="mx-auto grid min-h-[620px] max-w-[1440px] items-center gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-12 lg:py-24">
+      <section className="mx-auto grid min-h-[650px] max-w-[1440px] items-center gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-12 lg:py-24">
         <div className="max-w-[650px]">
           <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#e8e6df] bg-white px-3.5 py-2 text-xs font-medium text-[#55564f]">
             <span className="h-2 w-2 rounded-full bg-[#ffb900]" />
@@ -80,7 +94,7 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl border border-[#ffb900] bg-[#ffb900] px-6 text-sm font-semibold text-[#171a1a] transition-colors hover:border-[#eda900] hover:bg-[#eda900]"
+              className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl border border-[#ffb900] bg-[#ffb900] px-6 text-sm font-semibold transition-colors hover:border-[#eda900] hover:bg-[#eda900]"
             >
               <Upload size={17} />
               Import a project
@@ -97,7 +111,7 @@ export default function HomePage() {
 
             <Link
               href="/workspace"
-              className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[#e1dfd8] bg-white px-6 text-sm font-medium text-[#30312d] transition-colors hover:bg-[#f3f2ee]"
+              className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[#e1dfd8] bg-white px-6 text-sm font-medium transition-colors hover:bg-[#f3f2ee]"
             >
               Open workspace
             </Link>
@@ -147,29 +161,21 @@ export default function HomePage() {
                     <FileCode2 size={13} className="mr-2 inline" />
                     index.html
                   </div>
-                  <div className="rounded-md px-2 py-2 text-[#686961]">
-                    styles.css
-                  </div>
-                  <div className="rounded-md px-2 py-2 text-[#686961]">
-                    script.js
-                  </div>
+                  <div className="rounded-md px-2 py-2 text-[#686961]">styles.css</div>
+                  <div className="rounded-md px-2 py-2 text-[#686961]">script.js</div>
                   <div className="mt-3 border-t border-[#e8e6df] pt-3">
                     <div className="px-2 py-1.5 text-[#686961]">
                       <FolderOpen size={13} className="mr-2 inline" />
                       assets
                     </div>
-                    <div className="px-5 py-1.5 text-[#93938b]">
-                      image.svg
-                    </div>
+                    <div className="px-5 py-1.5 text-[#93938b]">image.svg</div>
                   </div>
                 </div>
               </aside>
 
               <div className="min-w-0 p-4 sm:p-5">
                 <div className="mb-5 flex items-center justify-between gap-2">
-                  <span className="text-xs font-medium text-[#73746f]">
-                    Live preview
-                  </span>
+                  <span className="text-xs font-medium text-[#73746f]">Live preview</span>
                   <div className="flex items-center gap-1.5 text-[#73746f]">
                     <Monitor size={15} />
                     <Tablet size={15} />
@@ -194,17 +200,14 @@ export default function HomePage() {
             </div>
 
             <div className="flex items-center justify-between border-t border-[#e8e6df] px-4 py-3 text-[11px] text-[#73746f]">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#7baf79]" />
-                Workspace preview concept
-              </span>
+              <span>Workspace preview concept</span>
               <span>Desktop · 1440 px</span>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="workflow" className="border-t border-[#e8e6df] bg-white">
+      <section className="border-t border-[#e8e6df] bg-white">
         <div className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 lg:px-12 lg:py-20">
           <div className="max-w-xl">
             <p className="text-xs font-semibold tracking-[0.16em] text-[#a47700]">
@@ -220,21 +223,9 @@ export default function HomePage() {
           </div>
 
           <div className="mt-10 grid gap-4 md:grid-cols-3">
-            <FeatureCard
-              number="01"
-              title="Bring your files"
-              description="Start with a ZIP archive of your website project."
-            />
-            <FeatureCard
-              number="02"
-              title="Explore and edit"
-              description="Navigate your project structure and work with text files."
-            />
-            <FeatureCard
-              number="03"
-              title="Preview responsively"
-              description="Check your page at desktop, tablet, and mobile widths."
-            />
+            <FeatureCard number="01" title="Bring your files" description="Start with a ZIP archive of your website project." />
+            <FeatureCard number="02" title="Explore and edit" description="Navigate your project structure and work with text files." />
+            <FeatureCard number="03" title="Preview responsively" description="Check your page at desktop, tablet, and mobile widths." />
           </div>
         </div>
       </section>
