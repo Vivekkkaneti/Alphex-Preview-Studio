@@ -33,7 +33,7 @@ import {
   openSavedProject,
   updateSavedProject,
 } from '@/lib/session';
-import type { ProjectFile, ProjectSession, RecentProject } from '@/lib/types';
+import type { ProjectFile, ProjectSession } from '@/lib/types';
 
 type Device = 'desktop' | 'tablet' | 'mobile';
 
@@ -56,10 +56,9 @@ const DEVICE_LABELS: Record<Device, string> = {
   mobile: 'Mobile',
 };
 
-const isTextFile = (path: string) =>
-  /\.(html?|css|js|mjs|cjs|jsx|tsx?|json|md|txt|xml|svg|ya?ml|toml|sh|py|java|sql|env|gitignore|tsconfig)$/i.test(
-    path,
-  ) || /\.(env|gitignore|prettierrc|eslintrc|babelrc|npmrc)$/i.test(path);
+function isTextFile(path: string) {
+  return /\.(html?|css|js|mjs|cjs|jsx|tsx?|json|md|txt|xml|svg|ya?ml|toml|sh|py|java|sql|env|gitignore|tsconfig)$/i.test(path);
+}
 
 function getMimeType(path: string): string {
   const extension = path.split('.').pop()?.toLowerCase();
@@ -130,6 +129,7 @@ function makeTree(files: Record<string, ProjectFile>): TreeNode[] {
       if (a.isDirectory !== b.isDirectory) {
         return a.isDirectory ? -1 : 1;
       }
+
       return a.name.localeCompare(b.name);
     });
 
@@ -142,13 +142,14 @@ function makeTree(files: Record<string, ProjectFile>): TreeNode[] {
 
 function getEntryPath(project: ProjectSession): string {
   const paths = Object.keys(project.files);
+
   const preferred = [
     project.entryHtml,
     'index.html',
     'public/index.html',
     'src/index.html',
     'src/main.html',
-  ].filter(Boolean);
+  ];
 
   return (
     preferred.find((path) => paths.includes(path)) ??
@@ -205,10 +206,9 @@ function getPreviewHtml(project: ProjectSession, entryPath: string): string {
 
   html = html.replace(
     /\b(src|href)=("([^"]*)"|'([^']*)')/gi,
-    (match, attribute: string, _quoted: string, double: string, single: string) => {
+    (_match, attribute: string, _quoted: string, double: string, single: string) => {
       const value = double ?? single ?? '';
-      const resolved = resolvePath(value);
-      return `${attribute}="${escapeHtml(resolved)}"`;
+      return `${attribute}="${escapeHtml(resolvePath(value))}"`;
     },
   );
 
@@ -217,20 +217,21 @@ function getPreviewHtml(project: ProjectSession, entryPath: string): string {
   Object.entries(project.files).forEach(([path, file]) => {
     if (typeof file.content === 'string') {
       fileMap[path] = file.content;
-    } else {
-      const bytes = file.content;
-      let binary = '';
-      const chunkSize = 8192;
-
-      for (let index = 0; index < bytes.length; index += chunkSize) {
-        binary += String.fromCharCode(
-          ...Array.from(bytes.slice(index, index + chunkSize)),
-        );
-      }
-
-      fileMap[path] =
-        `data:${file.mimeType || getMimeType(path)};base64,${btoa(binary)}`;
+      return;
     }
+
+    const bytes = file.content;
+    let binary = '';
+    const chunkSize = 8192;
+
+    for (let index = 0; index < bytes.length; index += chunkSize) {
+      binary += String.fromCharCode(
+        ...Array.from(bytes.slice(index, index + chunkSize)),
+      );
+    }
+
+    fileMap[path] =
+      `data:${file.mimeType || getMimeType(path)};base64,${btoa(binary)}`;
   });
 
   const serializedFiles = JSON.stringify(fileMap).replace(/</g, '\\u003c');
@@ -251,9 +252,7 @@ function getPreviewHtml(project: ProjectSession, entryPath: string): string {
   };
 
   const resolve = (url) => {
-    if (!url || /^(https?:|data:|blob:|\\/\\/|#|mailto:|tel:|javascript:)/i.test(url)) {
-      return url;
-    }
+    if (!url || /^(https?:|data:|blob:|\\/\\/|#|mailto:|tel:|javascript:)/i.test(url)) return url;
 
     const clean = decodeURIComponent(
       url.replace(/^alphex-file:\\/\\//, '').split(/[?#]/)[0]
@@ -329,7 +328,7 @@ function FileIcon({ path }: { path: string }) {
 
 export default function WorkspacePage() {
   const [project, setProject] = useState<ProjectSession | null>(null);
-  const [recentProjects, setRecentProjects] = useState<RecentProject[]>([]);
+  const [recentProjects, setRecentProjects] = useState<ProjectSession[]>([]);
   const [selectedPath, setSelectedPath] = useState('');
   const [draft, setDraft] = useState('');
   const [device, setDevice] = useState<Device>('desktop');
@@ -452,8 +451,7 @@ export default function WorkspacePage() {
             throw new Error('The extracted project is over the 100 MB limit.');
           }
 
-          const textFile = isTextFile(path);
-          const content: string | Uint8Array = textFile
+          const content: string | Uint8Array = isTextFile(path)
             ? new TextDecoder('utf-8').decode(data)
             : data;
 
@@ -576,11 +574,7 @@ export default function WorkspacePage() {
   }, [importArchive]);
 
   useEffect(() => {
-    if (selectedFile) {
-      setDraft(getContent(selectedFile));
-    } else {
-      setDraft('');
-    }
+    setDraft(selectedFile ? getContent(selectedFile) : '');
   }, [selectedPath, selectedFile]);
 
   const saveCurrentFile = useCallback(async () => {
@@ -1107,7 +1101,6 @@ export default function WorkspacePage() {
                         <span className="h-2 w-2 rounded-full bg-[#f28b82]" />
                         <span className="h-2 w-2 rounded-full bg-[#fbbc04]" />
                         <span className="h-2 w-2 rounded-full bg-[#81c995]" />
-
                         <div className="mx-auto max-w-[65%] truncate rounded-md bg-stone-100 px-4 py-1 text-[9px] text-stone-400">
                           {selectedPath || entryPath}
                         </div>
