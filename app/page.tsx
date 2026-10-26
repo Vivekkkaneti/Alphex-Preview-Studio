@@ -1,14 +1,12 @@
- 
+
 'use client';
 
-import { useRef, useState } from 'react';
-import { Outfit } from 'next/font/google';
+import { useRef } from 'react';
 import Link from 'next/link';
 import {
-  ArrowRight,
+  ArrowUpRight,
   Check,
   Code2,
-  FileCode2,
   FolderOpen,
   Monitor,
   Smartphone,
@@ -16,15 +14,8 @@ import {
   Upload,
 } from 'lucide-react';
 
-const outfit = Outfit({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-outfit',
-});
-
 export default function HomePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [logoFailed, setLogoFailed] = useState(false);
 
   function handleImport(file?: File) {
     if (!file) return;
@@ -41,64 +32,73 @@ export default function HomePage() {
   }
 
   return (
-    <main className={`${outfit.className} min-h-screen bg-[#faf9f6] text-[#171a1a]`}>
-      <header className="border-b border-[#e8e6df] bg-[#faf9f6]">
-        <div className="mx-auto flex min-h-[88px] max-w-[1440px] items-center justify-between gap-4 px-5 sm:px-8 lg:px-12">
-          <Link href="/" aria-label="Alphex Preview Studio home" className="block shrink-0">
-            {!logoFailed ? (
+    <main
+      className="min-h-screen bg-[#f8f8f6] text-[#171717]"
+      style={{
+        fontFamily:
+          '"Avenir Next", Avenir, "Trebuchet MS", "Segoe UI", sans-serif',
+      }}
+    >
+      {/* Header */}
+      <header className="border-b border-[#e5e5e0] bg-white">
+        <div className="mx-auto flex min-h-[88px] max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-12">
+          <Link
+            href="/"
+            aria-label="Alphex Preview Studio home"
+            className="block w-[225px] shrink-0 sm:w-[285px]"
+          >
+            <div className="relative h-[65px] w-full overflow-hidden bg-white sm:h-[72px]">
               <img
                 src="/alphex-preview-studio-logo.png"
                 alt="Alphex Preview Studio"
-                onError={() => setLogoFailed(true)}
-                className="block h-auto w-[220px] object-contain sm:w-[280px]"
+                className="absolute inset-0 h-full w-full object-cover object-center"
               />
-            ) : (
-              <span className="block">
-                <span className="block text-[32px] font-bold leading-none tracking-[-0.065em]">
-                  alphex
-                </span>
-                <span className="mt-1 block pl-1 text-[9px] font-medium tracking-[0.38em] text-[#55564f]">
-                  PREVIEW STUDIO
-                </span>
-              </span>
-            )}
+            </div>
           </Link>
 
-          <div className="hidden items-center gap-2 text-sm text-[#73746f] sm:flex">
-            <span className="h-2 w-2 rounded-full bg-[#ffb900]" />
+          <span className="hidden items-center gap-2 text-sm text-[#777777] sm:inline-flex">
+            <span className="h-2 w-2 rounded-full bg-[#ffc900]" />
             Browser-based workspace
-          </div>
+          </span>
         </div>
       </header>
 
-      <section className="mx-auto grid min-h-[650px] max-w-[1440px] items-center gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-12 lg:py-24">
-        <div className="max-w-[650px]">
-          <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#e8e6df] bg-white px-3.5 py-2 text-xs font-medium text-[#55564f]">
-            <span className="h-2 w-2 rounded-full bg-[#ffb900]" />
-            YOUR WEB PROJECT, IN PREVIEW
+      {/* Original minimal hero */}
+      <section className="mx-auto max-w-[1440px] px-5 pb-20 pt-24 sm:px-8 sm:pt-32 lg:px-12 lg:pb-24 lg:pt-32">
+        <div className="mx-auto max-w-[1168px]">
+          <div className="mb-9 flex items-center gap-2.5 text-[12px] font-medium tracking-[0.16em] text-[#777777] sm:mb-10">
+            <span className="h-2 w-2 rounded-full bg-[#ffc900]" />
+            WEB PROJECT WORKSPACE
           </div>
 
-          <h1 className="text-[42px] font-semibold leading-[1.08] tracking-[-0.055em] sm:text-[56px] lg:text-[68px]">
-            Build less blindly.
+          <h1 className="max-w-[1000px] text-[48px] font-normal leading-[1.04] tracking-[-0.075em] sm:text-[66px] md:text-[82px] lg:text-[100px]">
+            Your code.
             <br />
-            <span className="text-[#c58b00]">See more clearly.</span>
+            Your preview.
+            <br />
+            <span className="relative inline-block">
+              <span className="relative z-10">Your workspace.</span>
+              <span
+                aria-hidden="true"
+                className="absolute bottom-[1px] left-0 right-0 z-0 h-[7px] bg-[#ffd21a] sm:h-[9px]"
+              />
+            </span>
           </h1>
 
-          <p className="mt-6 max-w-[530px] text-base leading-7 text-[#73746f] sm:text-lg sm:leading-8">
-            Bring your web project into one focused workspace. Explore files,
-            edit code, and preview your pages across desktop, tablet, and
-            mobile.
-          </p>
+          <div className="mt-10 flex flex-col items-start gap-6 sm:mt-11 sm:flex-row sm:items-center sm:gap-8">
+            <p className="max-w-[490px] text-[15px] leading-[1.8] text-[#5f5f5f] sm:text-[17px]">
+              A focused workspace to import website projects, inspect files,
+              edit code, and preview responsive layouts without the clutter.
+            </p>
 
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl border border-[#ffb900] bg-[#ffb900] px-6 text-sm font-semibold transition-colors hover:border-[#eda900] hover:bg-[#eda900]"
+              className="inline-flex min-h-[52px] shrink-0 items-center gap-3 rounded-full bg-[#ffcc14] px-6 text-[13px] font-medium text-[#171717] transition-colors hover:bg-[#f2bd00] sm:px-7"
             >
-              <Upload size={17} />
+              <Upload size={16} strokeWidth={1.8} />
               Import a project
-              <ArrowRight size={16} />
+              <ArrowUpRight size={17} strokeWidth={1.8} />
             </button>
 
             <input
@@ -108,154 +108,94 @@ export default function HomePage() {
               className="hidden"
               onChange={(event) => handleImport(event.target.files?.[0])}
             />
-
-            <Link
-              href="/workspace"
-              className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[#e1dfd8] bg-white px-6 text-sm font-medium transition-colors hover:bg-[#f3f2ee]"
-            >
-              Open workspace
-            </Link>
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-x-5 gap-y-3 text-xs text-[#73746f]">
-            <span className="inline-flex items-center gap-1.5">
-              <Check size={14} className="text-[#b17b00]" />
+          <div className="mt-16 grid border-y border-[#deded9] sm:mt-20 sm:grid-cols-3">
+            <Feature
+              number="01"
+              icon={<FolderOpen size={19} strokeWidth={1.6} />}
+              title="Import your project"
+              description="Bring your website files into one workspace."
+            />
+            <Feature
+              number="02"
+              icon={<Code2 size={19} strokeWidth={1.6} />}
+              title="Inspect and edit"
+              description="Browse files and make changes to your code."
+            />
+            <Feature
+              number="03"
+              icon={<Monitor size={19} strokeWidth={1.6} />}
+              title="Preview every screen"
+              description="Check your page across desktop, tablet, and mobile."
+            />
+          </div>
+
+          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-[12px] text-[#777777]">
+            <span className="inline-flex items-center gap-2">
+              <Check size={14} className="text-[#bd8e00]" />
               ZIP project import
             </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Check size={14} className="text-[#b17b00]" />
+            <span className="inline-flex items-center gap-2">
+              <Check size={14} className="text-[#bd8e00]" />
               Responsive preview
             </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Check size={14} className="text-[#b17b00]" />
+            <span className="inline-flex items-center gap-2">
+              <Check size={14} className="text-[#bd8e00]" />
               Local project storage
             </span>
           </div>
-        </div>
 
-        <div className="relative mx-auto w-full max-w-[570px]">
-          <div className="absolute -inset-5 rounded-[32px] bg-[#ffb900]/10 blur-2xl" />
-
-          <div className="relative overflow-hidden rounded-2xl border border-[#e5e2d9] bg-white shadow-[0_24px_80px_rgba(35,32,20,0.09)]">
-            <div className="flex h-12 items-center justify-between border-b border-[#e8e6df] px-4">
-              <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#e7e5df]" />
-                <span className="h-2.5 w-2.5 rounded-full bg-[#e7e5df]" />
-                <span className="h-2.5 w-2.5 rounded-full bg-[#e7e5df]" />
-              </div>
-              <span className="text-[11px] text-[#8b8b83]">
-                Alphex Preview Studio
-              </span>
-              <Code2 size={16} className="text-[#73746f]" />
-            </div>
-
-            <div className="grid min-h-[340px] grid-cols-[145px_1fr] sm:grid-cols-[175px_1fr]">
-              <aside className="border-r border-[#e8e6df] bg-[#faf9f6] p-3">
-                <div className="mb-4 flex items-center gap-2 px-1 text-[11px] font-semibold text-[#73746f]">
-                  <FolderOpen size={14} />
-                  PROJECT FILES
-                </div>
-
-                <div className="space-y-1 text-xs">
-                  <div className="rounded-md bg-[#ffb900]/20 px-2 py-2 font-medium text-[#5d4500]">
-                    <FileCode2 size={13} className="mr-2 inline" />
-                    index.html
-                  </div>
-                  <div className="rounded-md px-2 py-2 text-[#686961]">styles.css</div>
-                  <div className="rounded-md px-2 py-2 text-[#686961]">script.js</div>
-                  <div className="mt-3 border-t border-[#e8e6df] pt-3">
-                    <div className="px-2 py-1.5 text-[#686961]">
-                      <FolderOpen size={13} className="mr-2 inline" />
-                      assets
-                    </div>
-                    <div className="px-5 py-1.5 text-[#93938b]">image.svg</div>
-                  </div>
-                </div>
-              </aside>
-
-              <div className="min-w-0 p-4 sm:p-5">
-                <div className="mb-5 flex items-center justify-between gap-2">
-                  <span className="text-xs font-medium text-[#73746f]">Live preview</span>
-                  <div className="flex items-center gap-1.5 text-[#73746f]">
-                    <Monitor size={15} />
-                    <Tablet size={15} />
-                    <Smartphone size={15} />
-                  </div>
-                </div>
-
-                <div className="flex min-h-[230px] items-center justify-center rounded-xl border border-[#ece9e1] bg-[#faf9f6] p-4">
-                  <div className="w-full max-w-[260px] rounded-xl border border-[#e8e6df] bg-white p-5 shadow-sm">
-                    <div className="mb-4 h-2 w-12 rounded-full bg-[#ffb900]" />
-                    <div className="h-3 w-4/5 rounded bg-[#202321]" />
-                    <div className="mt-2 h-3 w-3/5 rounded bg-[#e6e5df]" />
-                    <div className="mt-5 space-y-2">
-                      <div className="h-2 w-full rounded bg-[#f0efea]" />
-                      <div className="h-2 w-11/12 rounded bg-[#f0efea]" />
-                      <div className="h-2 w-4/5 rounded bg-[#f0efea]" />
-                    </div>
-                    <div className="mt-5 h-8 w-24 rounded-lg bg-[#ffb900]" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between border-t border-[#e8e6df] px-4 py-3 text-[11px] text-[#73746f]">
-              <span>Workspace preview concept</span>
-              <span>Desktop · 1440 px</span>
-            </div>
+          <div className="mt-12 flex justify-end">
+            <Link
+              href="/workspace"
+              className="inline-flex items-center gap-2 text-[13px] text-[#626262] transition-colors hover:text-[#171717]"
+            >
+              Open workspace
+              <ArrowUpRight size={15} />
+            </Link>
           </div>
         </div>
       </section>
 
-      <section className="border-t border-[#e8e6df] bg-white">
-        <div className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 lg:px-12 lg:py-20">
-          <div className="max-w-xl">
-            <p className="text-xs font-semibold tracking-[0.16em] text-[#a47700]">
-              A MORE FOCUSED WORKFLOW
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
-              Everything starts with your project.
-            </h2>
-            <p className="mt-4 leading-7 text-[#73746f]">
-              Import your files, inspect the structure, and prepare your
-              project for responsive preview from one place.
-            </p>
-          </div>
-
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            <FeatureCard number="01" title="Bring your files" description="Start with a ZIP archive of your website project." />
-            <FeatureCard number="02" title="Explore and edit" description="Navigate your project structure and work with text files." />
-            <FeatureCard number="03" title="Preview responsively" description="Check your page at desktop, tablet, and mobile widths." />
-          </div>
-        </div>
-      </section>
-
-      <footer className="border-t border-[#e8e6df] bg-[#faf9f6]">
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-3 px-5 py-6 text-xs text-[#73746f] sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12">
+      <footer className="border-t border-[#e5e5e0] bg-white">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-5 py-6 text-[11px] text-[#858585] sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12">
           <span>Alphex Preview Studio</span>
-          <span>Designed for a clearer web workflow.</span>
+          <span className="flex items-center gap-2">
+            <Monitor size={13} />
+            <Tablet size={13} />
+            <Smartphone size={13} />
+            Made for responsive workflows
+          </span>
         </div>
       </footer>
     </main>
   );
 }
 
-function FeatureCard({
+function Feature({
   number,
+  icon,
   title,
   description,
 }: {
   number: string;
+  icon: React.ReactNode;
   title: string;
   description: string;
 }) {
   return (
-    <article className="rounded-2xl border border-[#e8e6df] bg-[#faf9f6] p-6">
-      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#ffb900]/20 text-xs font-semibold text-[#755400]">
-        {number}
+    <article className="flex min-h-[140px] flex-col justify-between gap-5 border-b border-[#deded9] px-4 py-5 first:pl-0 sm:border-b-0 sm:border-r sm:px-6 sm:py-6 sm:first:pl-0 sm:last:border-r-0">
+      <div className="flex items-center justify-between text-[#777777]">
+        <span className="text-[11px] tabular-nums">{number}</span>
+        {icon}
       </div>
-      <h3 className="mt-5 text-base font-semibold tracking-tight">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-[#73746f]">{description}</p>
+      <div>
+        <h2 className="text-[14px] font-medium tracking-[-0.02em]">{title}</h2>
+        <p className="mt-1.5 max-w-[270px] text-[12px] leading-5 text-[#777777]">
+          {description}
+        </p>
+      </div>
     </article>
   );
 }
