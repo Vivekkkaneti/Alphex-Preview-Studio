@@ -1,6 +1,11 @@
 
 import type { ProjectFile } from '@/lib/types';
 
+export const PROJECT_LIMITS = {
+  maxFileSizeBytes: 10 * 1024 * 1024, // 10 MB per file
+  maxPathLength: 500,
+} as const;
+
 const EXCLUDED_NAMES = new Set([
   'node_modules',
   '.git',
@@ -11,19 +16,63 @@ const EXCLUDED_NAMES = new Set([
   'build',
 ]);
 
+/**
+ * Normalize separators and remove harmless leading "./" segments.
+ * Reject traversal and absolute paths separately in validateProjectPath.
+ */
 export function normalizePath(path: string): string {
   return path
     .replace(/\\/g, '/')
-    .replace(/^\/+/, '')
-    .replace(/^\.\//, '');
+    .replace(/^(?:\.\/)+/, '')
+    .replace(/^\/+/, '');
+}
+
+export function validateProjectPath(path: string): string {
+  if (typeof path !== 'string' || !path.trim()) {
+    throw new Error('The project contains an empty file path.');
+  }
+
+  if (path.length > PROJECT_LIMITS.maxPathLength) {
+    throw new Error('A project file path is too long.');
+  }
+
+  // Reject Unix absolute paths, Windows absolute paths, and drive paths.
+  if (
+    path.startsWith('/') ||
+    path.startsWith('\\') ||
+    /^[a-zA-Z]:/.test(path)
+  ) {
+    throw new Error(`Absolute file paths are not allowed: ${path}`);
+  }
+
+  const normalized = path.replace(/\\/g, '/');
+
+  // Reject traversal before normalization can hide it.
+  if (normalized.split('/').some((part) => part === '..')) {
+    throw new Error(`Parent-directory paths are not allowed: ${path}`);
+  }
+
+  const safePath = normalizePath(path);
+
+  if (
+    !safePath ||
+    safePath.split('/').some(
+      (part) => !part || part === '.' || EXCLUDED_NAMES.has(part),
+    )
+  ) {
+    throw new Error(`Unsupported project file path: ${path}`);
+  }
+
+  return safePath;
 }
 
 export function isExcludedPath(path: string): boolean {
-  const normalized = normalizePath(path);
-
-  return normalized.split('/').some(
-    (part) => part === '..' || part === '.' || EXCLUDED_NAMES.has(part),
-  );
+  try {
+    validateProjectPath(path);
+    return false;
+  } catch {
+    return true;
+  }
 }
 
 export function getMimeType(path: string): string {
@@ -82,16 +131,18 @@ export function createProjectFile(
   bytes: Uint8Array,
   lastModified = Date.now(),
 ): ProjectFile {
-  const normalized = normalizePath(path);
+  const normalized = validateProjectPath(path);
 
-  if (!normalized || isExcludedPath(normalized)) {
-    throw new Error(`Unsupported project file path: ${path}`);
+  if (bytes.byteLength > PROJECT_LIMITS.maxFileSizeBytes) {
+    throw new Error(
+      `"${normalized}" exceeds the 10 MB per-file limit.`,
+    );
   }
 
   const mimeType = getMimeType(normalized);
   const textFile = isTextFile(normalized);
   const content = textFile
-    ? new TextDecoder().decode(bytes)
+    ? new TextDecoder('utf-8', { fatal: false }).decode(bytes)
     : new Uint8Array(bytes);
 
   return {
@@ -129,7 +180,7 @@ export function getProjectName(filename: string): string {
 }
 
 export function toSafePreviewPath(path: string): string {
-  return normalizePath(path)
+  return validateProjectPath(path)
     .split('/')
     .map((part) => encodeURIComponent(part))
     .join('/');
