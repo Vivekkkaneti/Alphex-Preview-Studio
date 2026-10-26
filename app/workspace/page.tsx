@@ -166,61 +166,25 @@ function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;');
 }
 
-function getPreviewHtml(project: ProjectSession, entryPath: string): string {
+function getPreviewHtml(
+  project: ProjectSession,
+  entryPath: string,
+): string {
   const entry = project.files[entryPath];
 
   if (!entry) {
     return '<!doctype html><html><body style="font-family:Arial;padding:40px"><h2>No HTML entry file found</h2><p>Select an HTML file from the explorer.</p></body></html>';
   }
 
-  let html = getContent(entry);
+  const getDataUrl = (path: string, file: ProjectFile): string => {
+    const mimeType = file.mimeType || getMimeType(path);
 
-  const baseDirectory = entryPath.includes('/')
-    ? entryPath.slice(0, entryPath.lastIndexOf('/') + 1)
-    : '';
-
-  const resolvePath = (reference: string) => {
-    const clean = reference.split(/[?#]/)[0];
-
-    if (
-      !clean ||
-      /^(?:https?:|data:|blob:|\/\/|#|mailto:|tel:|javascript:)/i.test(
-        reference.trim(),
-      )
-    ) {
-      return reference;
-    }
-
-    const decoded = clean.replace(/^\.\//, '');
-    const candidates = [
-      decoded,
-      `${baseDirectory}${decoded}`,
-      decoded.startsWith('/') ? decoded.slice(1) : '',
-    ].filter(Boolean);
-
-    const found = candidates.find((candidate) => project.files[candidate]);
-
-    return found ? `alphex-file://${encodeURIComponent(found)}` : reference;
-  };
-
-  html = html.replace(
-    /\b(src|href)=("([^"]*)"|'([^']*)')/gi,
-    (_match, attribute: string, _quoted: string, double: string, single: string) => {
-      const value = double ?? single ?? '';
-      return `${attribute}="${escapeHtml(resolvePath(value))}"`;
-    },
-  );
-
-  const fileMap: Record<string, string> = {};
-
-  Object.entries(project.files).forEach(([path, file]) => {
     if (typeof file.content === 'string') {
-      fileMap[path] = file.content;
-      return;
+      return `data:${mimeType};charset=utf-8,${encodeURIComponent(file.content)}`;
     }
 
-    const bytes = file.content;
     let binary = '';
+    const bytes = file.content;
     const chunkSize = 8192;
 
     for (let index = 0; index < bytes.length; index += chunkSize) {
@@ -229,78 +193,184 @@ function getPreviewHtml(project: ProjectSession, entryPath: string): string {
       );
     }
 
-    fileMap[path] =
-      `data:${file.mimeType || getMimeType(path)};base64,${btoa(binary)}`;
-  });
+    return `data:${mimeType};base64,${btoa(binary)}`;
+  };
 
-  const serializedFiles = JSON.stringify(fileMap).replace(/</g, '\\u003c');
+  const normalizePath = (path: string): string => {
+    const parts: string[] = [];
 
-  const bridge = `
-<script>
-(() => {
-  const files = ${serializedFiles};
+    path.replace(/\\/g, '/').split('/').forEach((part) => {
+      if (!part || part === '.') return;
+      if (part === '..') parts.pop();
+      else parts.push(part);
+    });
 
-  const normalize = (path) => {
-    const parts = [];
-    for (const item of path.split('/')) {
-      if (!item || item === '.') continue;
-      if (item === '..') parts.pop();
-      else parts.push(item);
-    }
     return parts.join('/');
   };
 
-  const resolve = (url) => {
-    if (!url || /^(https?:|data:|blob:|\\/\\/|#|mailto:|tel:|javascript:)/i.test(url)) return url;
+  const resolveFilePath = (
+    reference: string,
+    fromPath: string,
+  ): string | null => {
+    const value = reference.trim();
 
-    const clean = decodeURIComponent(
-      url.replace(/^alphex-file:\\/\\//, '').split(/[?#]/)[0]
-    );
-
-    if (files[clean] !== undefined) return files[clean];
-    return url;
-  };
-
-  document.querySelectorAll('[src], [href]').forEach((element) => {
-    ['src', 'href'].forEach((attribute) => {
-      if (!element.hasAttribute(attribute)) return;
-
-      const value = element.getAttribute(attribute);
-
-      if (value && value.startsWith('alphex-file://')) {
-        const result = resolve(value);
-        if (result) element.setAttribute(attribute, result);
-      }
-    });
-  });
-
-  const originalFetch = window.fetch.bind(window);
-
-  window.fetch = (input, init) => {
-    const url = typeof input === 'string' ? input : input.url;
-    const key = normalize(url.split(/[?#]/)[0]);
-
-    if (files[key] !== undefined) {
-      return Promise.resolve(
-        new Response(files[key], {
-          status: 200,
-          headers: { 'Content-Type': 'text/plain' }
-        })
-      );
+    if (
+      !value ||
+      /^(?:https?:|data:|blob:|\/\/|#|mailto:|tel:|javascript:|about:)/i.test(
+        value,
+      )
+    ) {
+      return null;
     }
 
-    return originalFetch(input, init);
+    let pathname = value.split(/[?#]/)[0];
+
+    try {
+      pathname = decodeURIComponent(pathname);
+    } catch {
+      // Keep the original path if URL decoding fails.
+    }
+
+    pathname = pathname.replace(/\\/g, '/');
+
+    const fromDirectory = fromPath.includes('/')
+      ? fromPath.slice(0, fromPath.lastIndexOf('/') + 1)
+      : '';
+
+    const candidates = pathname.startsWith('/')
+      ? [normalizePath(pathname)]
+      : [
+          normalizePath(`${fromDirectory}${pathname}`),
+          normalizePath(pathname),
+        ];
+
+    return (
+      candidates.find((candidate) => Boolean(project.files[candidate])) ?? null
+    );
   };
-})();
-</script>`;
 
-  if (/<\/body\s*>/i.test(html)) {
-    return html.replace(/<\/body\s*>/i, `${bridge}</body>`);
-  }
+  const resolveAsset = (
+    reference: string,
+    fromPath: string,
+  ): string => {
+    const found = resolveFilePath(reference, fromPath);
 
-  return `${html}${bridge}`;
+    return found
+      ? getDataUrl(found, project.files[found])
+      : reference;
+  };
+
+  const processCss = (
+    css: string,
+    cssPath: string,
+  ): string =>
+    css.replace(
+      /url\(\s*(["']?)(.*?)\1\s*\)/gi,
+      (_match, _quote: string, url: string) => {
+        const resolved = resolveAsset(url, cssPath);
+        return `url("${resolved.replace(/"/g, '%22')}")`;
+      },
+    );
+
+  let html = getContent(entry);
+
+  // Inline local stylesheets so the preview does not depend on a server URL.
+  html = html.replace(
+    /<link\b([^>]*?)\bhref\s*=\s*(["'])(.*?)\2([^>]*)\/?\s*>/gi,
+    (match, before: string, _quote: string, href: string, after: string) => {
+      const relMatch = `${before} ${after}`.match(
+        /\brel\s*=\s*(["']?)([^"'\s>]+)\1/i,
+      );
+
+      if (
+        !relMatch ||
+        !relMatch[2].toLowerCase().split(/\s+/).includes('stylesheet')
+      ) {
+        const found = resolveFilePath(href, entryPath);
+
+        if (!found) return match;
+
+        return match.replace(
+          href,
+          getDataUrl(found, project.files[found]),
+        );
+      }
+
+      const found = resolveFilePath(href, entryPath);
+
+      if (!found || !/\.css(?:$|[?#])/i.test(href)) {
+        return match;
+      }
+
+      const stylesheet = project.files[found];
+
+      if (!stylesheet || typeof stylesheet.content !== 'string') {
+        return match;
+      }
+
+      const css = processCss(stylesheet.content, found);
+
+      return `<style data-alphex-source="${escapeHtml(found)}">${css.replace(/<\/style/gi, '<\\/style')}</style>`;
+    },
+  );
+
+  // Inline local JavaScript files to make them execute reliably in srcDoc.
+  html = html.replace(
+    /<script\b([^>]*?)\bsrc\s*=\s*(["'])(.*?)\2([^>]*)>\s*<\/script\s*>/gi,
+    (match, before: string, _quote: string, src: string, after: string) => {
+      const found = resolveFilePath(src, entryPath);
+
+      if (!found) return match;
+
+      const scriptFile = project.files[found];
+
+      if (!scriptFile || typeof scriptFile.content !== 'string') {
+        return match;
+      }
+
+      const attributes = `${before} ${after}`
+        .replace(
+          /\b(?:src|integrity|crossorigin|referrerpolicy)\s*=\s*(["']).*?\1/gi,
+          '',
+        )
+        .replace(
+          /\b(?:src|integrity|crossorigin|referrerpolicy)\s*=\s*[^\s>]+/gi,
+          '',
+        );
+
+      return `<script${attributes} data-alphex-source="${escapeHtml(found)}">${scriptFile.content.replace(/<\/script/gi, '<\\/script')}</script>`;
+    },
+  );
+
+  // Resolve local image, icon, media, and other direct file references.
+  html = html.replace(
+    /\b(src|poster|href)\s*=\s*(["'])(.*?)\2/gi,
+    (match, attribute: string, quote: string, value: string) => {
+      if (
+        /^(?:https?:|data:|blob:|\/\/|#|mailto:|tel:|javascript:|about:)/i.test(
+          value.trim(),
+        )
+      ) {
+        return match;
+      }
+
+      const resolved = resolveAsset(value, entryPath);
+
+      return `${attribute}=${quote}${escapeHtml(resolved)}${quote}`;
+    },
+  );
+
+  // Resolve relative URLs in inline style attributes.
+  html = html.replace(
+    /\bstyle\s*=\s*(["'])(.*?)\1/gi,
+    (_match, quote: string, style: string) => {
+      const updated = processCss(style, entryPath);
+      return `style=${quote}${escapeHtml(updated)}${quote}`;
+    },
+  );
+
+  return html;
 }
-
 function FileIcon({ path }: { path: string }) {
   const extension = path.split('.').pop()?.toLowerCase();
 
@@ -725,8 +795,7 @@ export default function WorkspacePage() {
   ) => {
     if (event.target.value) await openProject(event.target.value);
   };
-
-  if (loading) {
+    if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#faf9f6] text-stone-600">
         <div className="flex items-center gap-3 text-sm">
