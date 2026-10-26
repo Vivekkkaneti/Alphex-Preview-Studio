@@ -1,6 +1,7 @@
 
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import JSZip from 'jszip';
 import {
@@ -32,12 +33,9 @@ import {
   openSavedProject,
   updateSavedProject,
 } from '@/lib/session';
-import type {
-  DeviceMode,
-  ProjectFile,
-  ProjectSession,
-  RecentProject,
-} from '@/lib/types';
+import type { ProjectFile, ProjectSession, RecentProject } from '@/lib/types';
+
+type Device = 'desktop' | 'tablet' | 'mobile';
 
 type TreeNode = {
   name: string;
@@ -45,8 +43,6 @@ type TreeNode = {
   children: TreeNode[];
   isDirectory: boolean;
 };
-
-type Device = 'desktop' | 'tablet' | 'mobile';
 
 const DEVICE_WIDTHS: Record<Device, number> = {
   desktop: 1440,
@@ -172,11 +168,13 @@ function escapeHtml(value: string): string {
 
 function getPreviewHtml(project: ProjectSession, entryPath: string): string {
   const entry = project.files[entryPath];
+
   if (!entry) {
     return '<!doctype html><html><body style="font-family:Arial;padding:40px"><h2>No HTML entry file found</h2><p>Select an HTML file from the explorer.</p></body></html>';
   }
 
   let html = getContent(entry);
+
   const baseDirectory = entryPath.includes('/')
     ? entryPath.slice(0, entryPath.lastIndexOf('/') + 1)
     : '';
@@ -201,6 +199,7 @@ function getPreviewHtml(project: ProjectSession, entryPath: string): string {
     ].filter(Boolean);
 
     const found = candidates.find((candidate) => project.files[candidate]);
+
     return found ? `alphex-file://${encodeURIComponent(found)}` : reference;
   };
 
@@ -229,7 +228,8 @@ function getPreviewHtml(project: ProjectSession, entryPath: string): string {
         );
       }
 
-      fileMap[path] = `data:${file.mimeType || getMimeType(path)};base64,${btoa(binary)}`;
+      fileMap[path] =
+        `data:${file.mimeType || getMimeType(path)};base64,${btoa(binary)}`;
     }
   });
 
@@ -239,6 +239,7 @@ function getPreviewHtml(project: ProjectSession, entryPath: string): string {
 <script>
 (() => {
   const files = ${serializedFiles};
+
   const normalize = (path) => {
     const parts = [];
     for (const item of path.split('/')) {
@@ -250,8 +251,14 @@ function getPreviewHtml(project: ProjectSession, entryPath: string): string {
   };
 
   const resolve = (url) => {
-    if (!url || /^(https?:|data:|blob:|\\/\\/|#|mailto:|tel:|javascript:)/i.test(url)) return url;
-    const clean = decodeURIComponent(url.replace(/^alphex-file:\\/\\//, '').split(/[?#]/)[0]);
+    if (!url || /^(https?:|data:|blob:|\\/\\/|#|mailto:|tel:|javascript:)/i.test(url)) {
+      return url;
+    }
+
+    const clean = decodeURIComponent(
+      url.replace(/^alphex-file:\\/\\//, '').split(/[?#]/)[0]
+    );
+
     if (files[clean] !== undefined) return files[clean];
     return url;
   };
@@ -259,7 +266,9 @@ function getPreviewHtml(project: ProjectSession, entryPath: string): string {
   document.querySelectorAll('[src], [href]').forEach((element) => {
     ['src', 'href'].forEach((attribute) => {
       if (!element.hasAttribute(attribute)) return;
+
       const value = element.getAttribute(attribute);
+
       if (value && value.startsWith('alphex-file://')) {
         const result = resolve(value);
         if (result) element.setAttribute(attribute, result);
@@ -268,15 +277,20 @@ function getPreviewHtml(project: ProjectSession, entryPath: string): string {
   });
 
   const originalFetch = window.fetch.bind(window);
+
   window.fetch = (input, init) => {
     const url = typeof input === 'string' ? input : input.url;
     const key = normalize(url.split(/[?#]/)[0]);
+
     if (files[key] !== undefined) {
-      return Promise.resolve(new Response(files[key], {
-        status: 200,
-        headers: { 'Content-Type': 'text/plain' }
-      }));
+      return Promise.resolve(
+        new Response(files[key], {
+          status: 200,
+          headers: { 'Content-Type': 'text/plain' }
+        })
+      );
     }
+
     return originalFetch(input, init);
   };
 })();
@@ -293,19 +307,24 @@ function FileIcon({ path }: { path: string }) {
   const extension = path.split('.').pop()?.toLowerCase();
 
   if (extension === 'html' || extension === 'htm') {
-    return <FileCode2 size={15} className="text-orange-500" />;
-  }
-  if (extension === 'css') {
-    return <FileCode2 size={15} className="text-blue-500" />;
-  }
-  if (extension === 'js' || extension === 'ts' || extension === 'tsx') {
-    return <FileJson size={15} className="text-amber-500" />;
-  }
-  if (['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif'].includes(extension ?? '')) {
-    return <FileImage size={15} className="text-violet-500" />;
+    return <FileCode2 size={15} className="shrink-0 text-orange-500" />;
   }
 
-  return <File size={15} className="text-stone-400" />;
+  if (extension === 'css') {
+    return <FileCode2 size={15} className="shrink-0 text-blue-500" />;
+  }
+
+  if (['js', 'ts', 'tsx', 'jsx', 'json'].includes(extension ?? '')) {
+    return <FileJson size={15} className="shrink-0 text-amber-500" />;
+  }
+
+  if (
+    ['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif'].includes(extension ?? '')
+  ) {
+    return <FileImage size={15} className="shrink-0 text-violet-500" />;
+  }
+
+  return <File size={15} className="shrink-0 text-stone-400" />;
 }
 
 export default function WorkspacePage() {
@@ -324,7 +343,7 @@ export default function WorkspacePage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(true);
-  const [mobileMenu, setMobileMenu] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const frameRef = useRef<HTMLIFrameElement>(null);
 
@@ -376,7 +395,9 @@ export default function WorkspacePage() {
       setMessage(`Opened ${loaded.name}`);
     } catch (reason) {
       setError(
-        reason instanceof Error ? reason.message : 'Unable to open this project.',
+        reason instanceof Error
+          ? reason.message
+          : 'Unable to open this project.',
       );
     } finally {
       setBusy(false);
@@ -395,9 +416,7 @@ export default function WorkspacePage() {
       setMessage('');
 
       try {
-        const zip = await JSZip.loadAsync(file, {
-          checkCRC32: true,
-        });
+        const zip = await JSZip.loadAsync(file, { checkCRC32: true });
 
         const entries = Object.values(zip.files).filter(
           (item) =>
@@ -421,7 +440,10 @@ export default function WorkspacePage() {
 
         for (const entry of entries) {
           const path = entry.name.replace(/^\.\/+/, '').replace(/\\/g, '/');
-          if (!path || path.split('/').some((part) => part === '..')) continue;
+
+          if (!path || path.split('/').some((part) => part === '..')) {
+            continue;
+          }
 
           const data = await entry.async('uint8array');
           totalBytes += data.byteLength;
@@ -431,11 +453,9 @@ export default function WorkspacePage() {
           }
 
           const textFile = isTextFile(path);
-          let content: string | Uint8Array = data;
-
-          if (textFile) {
-            content = new TextDecoder('utf-8').decode(data);
-          }
+          const content: string | Uint8Array = textFile
+            ? new TextDecoder('utf-8').decode(data)
+            : data;
 
           files[path] = {
             path,
@@ -449,6 +469,7 @@ export default function WorkspacePage() {
         }
 
         const paths = Object.keys(files);
+
         const htmlEntry =
           paths.find((path) => path === 'index.html') ??
           paths.find((path) => /\/index\.html$/i.test(path)) ??
@@ -481,10 +502,13 @@ export default function WorkspacePage() {
         setExpandedFolders(new Set(['public', 'src']));
         setSaved(true);
         setMessage(`Imported ${name}`);
+
         await refreshRecentProjects();
       } catch (reason) {
         setError(
-          reason instanceof Error ? reason.message : 'Unable to import this ZIP.',
+          reason instanceof Error
+            ? reason.message
+            : 'Unable to import this ZIP.',
         );
       } finally {
         setBusy(false);
@@ -512,6 +536,7 @@ export default function WorkspacePage() {
 
           const response = await fetch(pendingData);
           const blob = await response.blob();
+
           const file = new File(
             [blob],
             pendingName || 'Imported project.zip',
@@ -583,6 +608,7 @@ export default function WorkspacePage() {
       };
 
       await updateSavedProject(updatedProject);
+
       setProject(updatedProject);
       setSaved(true);
       setMessage('Changes saved');
@@ -617,17 +643,20 @@ export default function WorkspacePage() {
 
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
+
       anchor.href = url;
-      anchor.download = `${project.name.replace(/[^\w.-]+/g, '-') || 'project'}.zip`;
+      anchor.download = `${
+        project.name.replace(/[^\w.-]+/g, '-') || 'project'
+      }.zip`;
+
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
+
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       setMessage('Project ZIP exported');
     } catch (reason) {
-      setError(
-        reason instanceof Error ? reason.message : 'Export failed.',
-      );
+      setError(reason instanceof Error ? reason.message : 'Export failed.');
     } finally {
       setBusy(false);
     }
@@ -636,13 +665,18 @@ export default function WorkspacePage() {
   const toggleFolder = (path: string) => {
     setExpandedFolders((previous) => {
       const next = new Set(previous);
+
       if (next.has(path)) next.delete(path);
       else next.add(path);
+
       return next;
     });
   };
 
-  const renderTree = (nodes: TreeNode[], depth = 0): React.ReactNode =>
+  const renderTree = (
+    nodes: TreeNode[],
+    depth = 0,
+  ): React.ReactNode =>
     nodes.map((node) => {
       const isExpanded = expandedFolders.has(node.path);
       const isSelected = selectedPath === node.path;
@@ -693,7 +727,9 @@ export default function WorkspacePage() {
       );
     });
 
-  const chooseProject = async (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const chooseProject = async (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
     if (event.target.value) await openProject(event.target.value);
   };
 
@@ -712,13 +748,13 @@ export default function WorkspacePage() {
     <main className="flex h-screen min-h-[600px] flex-col overflow-hidden bg-[#faf9f6] text-[#191b19]">
       <header className="z-20 flex h-[62px] shrink-0 items-center justify-between gap-3 border-b border-stone-200 bg-white px-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <a
+          <Link
             href="/"
             aria-label="Back to home"
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-stone-200 text-stone-600 transition hover:bg-stone-50"
           >
             <ArrowLeft size={17} />
-          </a>
+          </Link>
 
           <div className="min-w-0">
             <div className="truncate text-[13px] font-semibold tracking-[-0.02em]">
@@ -928,6 +964,7 @@ export default function WorkspacePage() {
               >
                 <RefreshCw size={14} />
               </button>
+
               <button
                 type="button"
                 onClick={() => setShowEditor((value) => !value)}
@@ -945,7 +982,9 @@ export default function WorkspacePage() {
 
           <div
             className={`grid min-h-0 flex-1 ${
-              showEditor ? 'grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]' : 'grid-cols-1'
+              showEditor
+                ? 'grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]'
+                : 'grid-cols-1'
             }`}
           >
             {showEditor && (
@@ -957,9 +996,11 @@ export default function WorkspacePage() {
                     ) : (
                       <Code2 size={14} className="text-stone-400" />
                     )}
+
                     <span className="max-w-[240px] truncate text-[11px] font-medium text-stone-600">
                       {selectedPath || 'Select a file'}
                     </span>
+
                     {selectedFile && !isTextFile(selectedPath) && (
                       <span className="rounded bg-stone-200 px-1.5 py-0.5 text-[9px] text-stone-500">
                         Read-only
@@ -1018,7 +1059,11 @@ export default function WorkspacePage() {
                 )}
 
                 <div className="flex h-8 shrink-0 items-center justify-between border-t border-stone-200 px-4 text-[10px] text-stone-400">
-                  <span>{selectedFile ? `${draft.length} characters` : 'No file selected'}</span>
+                  <span>
+                    {selectedFile
+                      ? `${draft.length} characters`
+                      : 'No file selected'}
+                  </span>
                   <span>UTF-8</span>
                 </div>
               </section>
@@ -1040,7 +1085,7 @@ export default function WorkspacePage() {
                   type="button"
                   onClick={() => {
                     if (frameRef.current) {
-                      frameRef.current.requestFullscreen?.();
+                      void frameRef.current.requestFullscreen?.();
                     }
                   }}
                   disabled={!project}
@@ -1053,16 +1098,16 @@ export default function WorkspacePage() {
 
               <div className="min-h-0 flex-1 overflow-auto p-3 sm:p-5">
                 {project && entryPath ? (
-                  <div className="mx-auto h-full min-h-[280px] transition-[width] duration-200"
-                    style={{
-                      width: `min(100%, ${DEVICE_WIDTHS[device]}px)`,
-                    }}
+                  <div
+                    className="mx-auto h-full min-h-[280px] transition-[width] duration-200"
+                    style={{ width: `min(100%, ${DEVICE_WIDTHS[device]}px)` }}
                   >
                     <div className="flex h-full min-h-[280px] flex-col overflow-hidden rounded-xl border border-stone-300 bg-white shadow-[0_8px_30px_rgba(20,20,20,0.06)]">
                       <div className="flex h-8 shrink-0 items-center gap-1.5 border-b border-stone-200 bg-white px-3">
                         <span className="h-2 w-2 rounded-full bg-[#f28b82]" />
                         <span className="h-2 w-2 rounded-full bg-[#fbbc04]" />
                         <span className="h-2 w-2 rounded-full bg-[#81c995]" />
+
                         <div className="mx-auto max-w-[65%] truncate rounded-md bg-stone-100 px-4 py-1 text-[9px] text-stone-400">
                           {selectedPath || entryPath}
                         </div>
@@ -1082,12 +1127,15 @@ export default function WorkspacePage() {
                     <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
                       <Upload size={24} />
                     </div>
+
                     <h2 className="text-base font-semibold tracking-tight">
                       Bring your project to life
                     </h2>
+
                     <p className="mt-2 max-w-sm text-xs leading-5 text-stone-500">
                       Import a website ZIP to inspect its files and preview its HTML in a responsive workspace.
                     </p>
+
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
@@ -1097,6 +1145,7 @@ export default function WorkspacePage() {
                       <Upload size={14} />
                       Import project ZIP
                     </button>
+
                     <p className="mt-3 text-[10px] text-stone-400">
                       HTML, CSS, JavaScript and assets
                     </p>
@@ -1106,8 +1155,11 @@ export default function WorkspacePage() {
 
               <div className="flex h-8 shrink-0 items-center justify-between border-t border-stone-200 bg-white px-3 sm:px-4">
                 <span className="truncate text-[10px] text-stone-400">
-                  {project ? `${fileCount} files · ${entryPath || 'No entry file'}` : 'No project loaded'}
+                  {project
+                    ? `${fileCount} files · ${entryPath || 'No entry file'}`
+                    : 'No project loaded'}
                 </span>
+
                 <span className="ml-3 flex shrink-0 items-center gap-1.5 text-[10px] text-stone-400">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   Browser preview
