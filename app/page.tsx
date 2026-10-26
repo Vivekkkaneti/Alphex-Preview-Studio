@@ -71,20 +71,13 @@ export default function HomePage() {
       }}
     >
       <header className="border-b border-[#e5e5e0] bg-white">
-        <div className="mx-auto flex min-h-[88px] max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-12">
+        <div className="mx-auto flex min-h-[88px] max-w-[1440px] items-center justify-between gap-5 px-5 sm:px-8 lg:px-12">
           <Link
             href="/"
             aria-label="Alphex Preview Studio home"
-            className="block w-[225px] shrink-0 sm:w-[285px]"
+            className="block w-[240px] shrink-0 sm:w-[320px]"
           >
-            {!logoFailed ? (
-              <img
-                src="/alphex-preview-studio-logo.png"
-                alt="Alphex Preview Studio"
-                onError={() => setLogoFailed(true)}
-                className="block h-auto max-h-[72px] w-full object-contain"
-              />
-            ) : (
+            {logoFailed ? (
               <span className="block">
                 <span className="block text-[32px] font-semibold leading-none tracking-[-0.075em]">
                   alphex
@@ -93,10 +86,19 @@ export default function HomePage() {
                   PREVIEW STUDIO
                 </span>
               </span>
+            ) : (
+              <img
+                src="/alphex-preview-studio-logo.png"
+                alt="Alphex Preview Studio"
+                width={1600}
+                height={450}
+                onError={() => setLogoFailed(true)}
+                className="block h-auto max-h-[76px] w-full object-contain object-left"
+              />
             )}
           </Link>
 
-          <span className="hidden items-center gap-2 text-sm text-[#777777] sm:inline-flex">
+          <span className="hidden shrink-0 items-center gap-2 text-sm text-[#777777] sm:inline-flex">
             <span className="h-2 w-2 rounded-full bg-[#ffc900]" />
             Browser-based workspace
           </span>
